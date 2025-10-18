@@ -10,6 +10,13 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+backend/.env
+backend/.env.production.local
+
+# Sensitive configuration files
+backend/gmail-credentials.json
+gmail-credentials.json
+tokens.json
 
 # Production builds
 /frontend/dist/
