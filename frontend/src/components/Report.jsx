@@ -6,7 +6,7 @@ import {
   fetchReportFailure,
 } from '../store/slices/reportSlice';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://email-spam-report-tool.onrender.com';
 
 const Report = () => {
   const dispatch = useDispatch();

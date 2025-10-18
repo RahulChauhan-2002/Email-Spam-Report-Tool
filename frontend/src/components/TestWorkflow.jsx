@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import TestHistory from './TestHistory';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://email-spam-report-tool.onrender.com';
 
 export default function TestWorkflow() {
   const [step, setStep] = useState(1); // 1: show inboxes, 2: generate code, 3: waiting, 4: report
