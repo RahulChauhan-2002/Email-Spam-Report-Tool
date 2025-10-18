@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const testInboxSchema = new mongoose.Schema({
   provider: {
     type: String,
-    enum: ['gmail', 'outlook', 'yahoo', 'aol', 'icloud'],
+    enum: ['gmail', 'outlook', 'yahoo', 'aol', 'icloud', 'testmail'],
     required: true
   },
   email: {
@@ -16,6 +16,11 @@ const testInboxSchema = new mongoose.Schema({
   displayName: {
     type: String,
     required: true
+  },
+  tag: {
+    type: String,
+    // Used for TestMail.app inbox identification (e.g., 'inbox1', 'inbox2')
+    sparse: true // Only required for TestMail.app provider
   },
   isActive: {
     type: Boolean,

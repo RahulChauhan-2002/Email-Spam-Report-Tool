@@ -1,1 +1,29 @@
 @import "tailwindcss";
+
+/* Additional responsive utilities */
+.break-anywhere {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Ensure buttons are easily tappable on mobile */
+@media (max-width: 640px) {
+  button {
+    min-height: 44px;
+  }
+  
+  input[type="email"] {
+    min-height: 44px;
+  }
+}
+
+/* Smooth scrolling for better UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better text rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

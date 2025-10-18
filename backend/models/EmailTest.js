@@ -16,7 +16,7 @@ const emailTestSchema = new mongoose.Schema({
   testInboxes: [{
     provider: {
       type: String,
-      enum: ['gmail', 'outlook', 'yahoo', 'aol', 'icloud'],
+      enum: ['gmail', 'outlook', 'yahoo', 'aol', 'icloud', 'testmail'],
       required: true
     },
     email: {
@@ -24,6 +24,10 @@ const emailTestSchema = new mongoose.Schema({
       required: true,
       trim: true,
       lowercase: true
+    },
+    tag: {
+      type: String,
+      required: false // Only needed for testmail provider
     },
     status: {
       type: String,

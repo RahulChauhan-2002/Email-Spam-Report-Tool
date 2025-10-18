@@ -6,27 +6,37 @@ dotenv.config();
 
 const testInboxes = [
   {
-    provider: 'gmail',
-    email: 'deliverability.test.gmail@gmail.com',
-    displayName: 'Gmail Test Inbox',
-    isActive: true
+    provider: 'testmail',
+    email: 'inbox1.test@testmail.app',
+    displayName: 'TestMail Inbox 1',
+    isActive: true,
+    description: 'Primary test inbox via TestMail.app'
   },
   {
-    provider: 'outlook',
-    email: 'deliverability.test.outlook@outlook.com',
-    displayName: 'Outlook Test Inbox',
-    isActive: true
+    provider: 'testmail',
+    email: 'inbox2.test@testmail.app',
+    displayName: 'TestMail Inbox 2', 
+    isActive: true,
+    description: 'Secondary test inbox via TestMail.app'
   },
   {
-    provider: 'yahoo',
-    email: 'deliverability.test.yahoo@yahoo.com',
-    displayName: 'Yahoo Test Inbox',
-    isActive: true
+    provider: 'testmail',
+    email: 'inbox3.test@testmail.app',
+    displayName: 'TestMail Inbox 3',
+    isActive: true,
+    description: 'Third test inbox via TestMail.app'
   },
   {
-    provider: 'aol',
-    email: 'deliverability.test.aol@aol.com',
-    displayName: 'AOL Test Inbox',
+    provider: 'testmail',
+    email: 'inbox4.test@testmail.app',
+    displayName: 'TestMail Inbox 4',
+    isActive: true,
+    description: 'Fourth test inbox via TestMail.app'
+  },
+  {
+    provider: 'testmail',
+    email: 'inbox5.test@testmail.app',
+    displayName: 'TestMail Inbox 5',
     isActive: true
   },
   {
@@ -41,20 +51,14 @@ const seedTestInboxes = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/email-deliverability-tool');
     
-    console.log('Connected to MongoDB');
     
     // Clear existing test inboxes
     await TestInbox.deleteMany({});
-    console.log('Cleared existing test inboxes');
     
     // Insert new test inboxes
     await TestInbox.insertMany(testInboxes);
-    console.log('✅ Test inboxes seeded successfully');
     
-    console.log('\n📧 Available Test Inboxes:');
-    testInboxes.forEach((inbox, index) => {
-      console.log(`${index + 1}. ${inbox.displayName}: ${inbox.email}`);
-    });
+  
     
     process.exit(0);
   } catch (error) {

@@ -1,12 +1,14 @@
 const { google } = require('googleapis');
+const TestMailService = require('./testMailService');
 
 /**
  * Real Email Analysis Service
- * Implements actual Gmail API integration with fallback to simulation
+ * Implements TestMail.app, Gmail API integration with fallback to simulation
  */
 class EmailAnalyzer {
   constructor() {
     this.gmailEnabled = process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET;
+    this.testMailService = new TestMailService();
     
     if (this.gmailEnabled) {
       this.oauth2Client = new google.auth.OAuth2(
@@ -30,8 +32,10 @@ class EmailAnalyzer {
       let result;
       
       try {
-        // Try real API first
-        if (this.canUseRealAPI(inbox.provider)) {
+        // Try TestMail.app first, then other real APIs
+        if (inbox.provider === 'testmail') {
+          result = await this.checkTestMailInbox(inbox, emailTest.testCode, emailTest.createdAt);
+        } else if (this.canUseRealAPI(inbox.provider)) {
           result = await this.checkRealInbox(inbox, emailTest.testCode);
         } else {
           // Fallback to simulation with clear marking
@@ -60,10 +64,41 @@ class EmailAnalyzer {
   }
 
   /**
+   * Check TestMail.app inbox for emails with test code
+   */
+  async checkTestMailInbox(inbox, testCode, since) {
+    try {
+      
+      // Extract tag from email (e.g., 'inbox1' from 'inbox1.test@testmail.app')
+      const tag = inbox.tag || inbox.email.split('.')[0];
+      
+      const result = await this.testMailService.findEmailWithTestCode(tag, testCode, since);
+      
+      return result;
+    } catch (error) {
+      console.error(`TestMail check failed for ${inbox.email}:`, error.message);
+      
+      // Return fallback result
+      return {
+        received: false,
+        location: 'not-found',
+        receivedAt: null,
+        checkedAt: new Date(),
+        messageId: null,
+        isSimulated: true,
+        method: 'testmail-error-fallback',
+        error: error.message
+      };
+    }
+  }
+
+  /**
    * Check if we can use real API for this provider
    */
   canUseRealAPI(provider) {
     switch (provider.toLowerCase()) {
+      case 'testmail':
+        return process.env.TESTMAIL_API_KEY; // TestMail.app support
       case 'gmail':
         return this.gmailEnabled && process.env.GMAIL_TEST_EMAIL;
       case 'outlook':

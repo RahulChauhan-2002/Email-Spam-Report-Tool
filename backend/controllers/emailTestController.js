@@ -2,6 +2,10 @@ const EmailTest = require('../models/EmailTest');
 const TestInbox = require('../models/TestInbox');
 const { validationResult } = require('express-validator');
 const EmailAnalyzer = require('../services/emailAnalyzer');
+const EmailSender = require('../services/emailSender');
+
+// Initialize email sender
+const emailSender = new EmailSender();
 
 // @desc    Create new email deliverability test
 // @route   POST /api/email-tests
@@ -23,6 +27,29 @@ const createEmailTest = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'User email is required'
+      });
+    }
+
+    // Enhanced email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address'
+      });
+    }
+
+    // Check for rate limiting (max 5 tests per email per hour)
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentTests = await EmailTest.countDocuments({
+      userEmail: userEmail,
+      createdAt: { $gte: oneHourAgo }
+    });
+
+    if (recentTests >= 5) {
+      return res.status(429).json({
+        success: false,
+        message: 'Rate limit exceeded. Please wait before creating another test.'
       });
     }
 
@@ -53,6 +80,7 @@ const createEmailTest = async (req, res) => {
       testInboxes: testInboxes.map(inbox => ({
         provider: inbox.provider,
         email: inbox.email,
+        tag: inbox.tag, // Include tag for TestMail.app
         status: 'pending'
       })),
       status: 'created',
@@ -65,9 +93,30 @@ const createEmailTest = async (req, res) => {
 
     await emailTest.save();
 
+    // Automatically send test emails if email sender is configured
+    let emailSendingResult = null;
+    try {
+      emailSendingResult = await emailSender.sendTestEmails(
+        testCode, 
+        userEmail, 
+        testInboxes
+      );
+      
+      if (emailSendingResult.success) {
+        // Update test status to indicate emails were sent
+        emailTest.status = 'waiting-for-email';
+        emailTest.emailSentAt = new Date();
+        await emailTest.save();
+      }
+    } catch (error) {
+      console.error('Error sending automatic emails:', error.message);
+    }
+
     res.status(201).json({
       success: true,
-      message: 'Email test created successfully',
+      message: emailSendingResult?.success 
+        ? `Email test created and ${emailSendingResult.sentEmails.length} emails sent automatically`
+        : 'Email test created successfully',
       data: {
         testCode: emailTest.testCode,
         testInboxes: emailTest.testInboxes.map(inbox => ({
@@ -76,7 +125,9 @@ const createEmailTest = async (req, res) => {
         })),
         userEmail: emailTest.userEmail,
         status: emailTest.status,
-        expiresAt: emailTest.expiresAt
+        expiresAt: emailTest.expiresAt,
+        automaticEmailSending: emailSendingResult?.success || false,
+        emailsSent: emailSendingResult?.sentEmails || []
       }
     });
 
@@ -159,8 +210,21 @@ const startAnalysis = async (req, res) => {
       emailTest.status = 'completed';
       emailTest.completedAt = new Date();
       await emailTest.save();
+     
       
-      console.log(`Email test ${emailTest.testCode} completed with ${emailTest.deliverabilityScore}% deliverability`);
+      // Send report notification email
+      try {
+        const reportUrl = `${process.env.CLIENT_ORIGIN || 'http://localhost:5173'}/report/${emailTest.testCode}`;
+        await emailSender.sendReportNotification(
+          emailTest.userEmail,
+          emailTest.testCode,
+          emailTest.testInboxes,
+          reportUrl
+        );
+        
+      } catch (emailError) {
+        console.error('Failed to send report notification:', emailError.message);
+      }
     }, 2000);
 
     res.json({
@@ -175,9 +239,17 @@ const startAnalysis = async (req, res) => {
 
   } catch (error) {
     console.error('Start analysis error:', error);
+    
+    // Update test status to failed
+    if (emailTest) {
+      emailTest.status = 'failed';
+      emailTest.error = error.message;
+      await emailTest.save();
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Server error starting analysis'
+      message: 'Server error starting analysis. Please try again later.'
     });
   }
 };
@@ -365,10 +437,70 @@ const simulateEmailAnalysis = async (testId) => {
     
     await emailTest.save();
 
-    console.log(`Email test ${emailTest.testCode} completed with ${emailTest.deliverabilityScore}% deliverability`);
-
   } catch (error) {
     console.error('Simulate analysis error:', error);
+  }
+};
+
+// @desc    Get deliverability statistics for a user
+// @route   GET /api/email-tests/stats/:userEmail
+// @access  Public
+const getDeliverabilityStats = async (req, res) => {
+  try {
+    const { userEmail } = req.params;
+    
+    // Get completed tests for this user
+    const completedTests = await EmailTest.find({
+      userEmail,
+      status: 'completed'
+    }).sort({ createdAt: -1 }).limit(10);
+
+    if (completedTests.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          totalTests: 0,
+          averageScore: 0,
+          trends: [],
+          recentTests: []
+        }
+      });
+    }
+
+    // Calculate statistics
+    const totalTests = completedTests.length;
+    const averageScore = Math.round(
+      completedTests.reduce((sum, test) => sum + (test.deliverabilityScore || 0), 0) / totalTests
+    );
+
+    // Get trends (last 5 tests)
+    const trends = completedTests.slice(0, 5).reverse().map(test => ({
+      testCode: test.testCode,
+      score: test.deliverabilityScore || 0,
+      date: test.createdAt
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        totalTests,
+        averageScore,
+        trends,
+        recentTests: completedTests.slice(0, 5).map(test => ({
+          testCode: test.testCode,
+          score: test.deliverabilityScore || 0,
+          createdAt: test.createdAt,
+          completedAt: test.completedAt
+        }))
+      }
+    });
+
+  } catch (error) {
+    console.error('Get deliverability stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error getting deliverability statistics'
+    });
   }
 };
 
@@ -379,5 +511,6 @@ module.exports = {
   getUserEmailTests,
   deleteEmailTest,
   getActiveInboxes,
-  getPublicEmailTest
+  getPublicEmailTest,
+  getDeliverabilityStats
 };

@@ -5,7 +5,8 @@ const {
   createEmailTest,
   startAnalysis,
   getPublicEmailTest,
-  getActiveInboxes
+  getActiveInboxes,
+  getDeliverabilityStats
 } = require('../controllers/emailTestController');
 
 // @desc    Create new email deliverability test
@@ -37,5 +38,10 @@ router.get('/:testCode/public', getPublicEmailTest);
 // @route   POST /api/email-tests/:testCode/analyze
 // @access  Public
 router.post('/:testCode/analyze', startAnalysis);
+
+// @desc    Get deliverability statistics for a user
+// @route   GET /api/email-tests/stats/:userEmail
+// @access  Public
+router.get('/stats/:userEmail', getDeliverabilityStats);
 
 module.exports = router;
