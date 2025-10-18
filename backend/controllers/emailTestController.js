@@ -504,6 +504,79 @@ const getDeliverabilityStats = async (req, res) => {
   }
 };
 
+// @desc    Seed test inboxes (for production setup)
+// @route   POST /api/email-tests/seed-inboxes
+// @access  Public
+const seedTestInboxes = async (req, res) => {
+  try {
+    // Clear existing test inboxes
+    await TestInbox.deleteMany({});
+    console.log('Cleared existing test inboxes');
+
+    // Create TestMail.app test inboxes
+    const testInboxes = [
+      {
+        provider: 'testmail',
+        email: 'inbox1.test@testmail.app',
+        tag: 'inbox1',
+        displayName: 'TestMail Inbox 1',
+        isActive: true
+      },
+      {
+        provider: 'testmail',
+        email: 'inbox2.test@testmail.app',
+        tag: 'inbox2',
+        displayName: 'TestMail Inbox 2',
+        isActive: true
+      },
+      {
+        provider: 'testmail',
+        email: 'inbox3.test@testmail.app',
+        tag: 'inbox3',
+        displayName: 'TestMail Inbox 3',
+        isActive: true
+      },
+      {
+        provider: 'testmail',
+        email: 'inbox4.test@testmail.app',
+        tag: 'inbox4',
+        displayName: 'TestMail Inbox 4',
+        isActive: true
+      },
+      {
+        provider: 'testmail',
+        email: 'inbox5.test@testmail.app',
+        tag: 'inbox5',
+        displayName: 'TestMail Inbox 5',
+        isActive: true
+      }
+    ];
+
+    // Insert test inboxes
+    const createdInboxes = await TestInbox.insertMany(testInboxes);
+    console.log(`✅ Successfully seeded ${createdInboxes.length} test inboxes`);
+
+    res.json({
+      success: true,
+      message: `Successfully seeded ${createdInboxes.length} test inboxes`,
+      data: createdInboxes.map(inbox => ({
+        provider: inbox.provider,
+        email: inbox.email,
+        tag: inbox.tag,
+        isActive: inbox.isActive
+      }))
+    });
+
+  } catch (error) {
+    console.error('❌ Error seeding test inboxes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error seeding test inboxes',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createEmailTest,
   startAnalysis,
@@ -512,5 +585,6 @@ module.exports = {
   deleteEmailTest,
   getActiveInboxes,
   getPublicEmailTest,
-  getDeliverabilityStats
+  getDeliverabilityStats,
+  seedTestInboxes
 };

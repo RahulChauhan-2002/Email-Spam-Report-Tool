@@ -9,7 +9,7 @@ const DatabaseSeeder = () => {
     setResult(null);
     
     try {
-      const response = await fetch('https://email-spam-report-tool.onrender.com/api/admin/seed-inboxes', {
+      const response = await fetch('https://email-spam-report-tool.onrender.com/api/email-tests/seed-inboxes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

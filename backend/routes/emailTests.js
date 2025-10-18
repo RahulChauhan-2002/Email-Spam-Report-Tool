@@ -6,7 +6,8 @@ const {
   startAnalysis,
   getPublicEmailTest,
   getActiveInboxes,
-  getDeliverabilityStats
+  getDeliverabilityStats,
+  seedTestInboxes
 } = require('../controllers/emailTestController');
 
 // @desc    Create new email deliverability test
@@ -43,5 +44,10 @@ router.post('/:testCode/analyze', startAnalysis);
 // @route   GET /api/email-tests/stats/:userEmail
 // @access  Public
 router.get('/stats/:userEmail', getDeliverabilityStats);
+
+// @desc    Seed test inboxes (for production setup)
+// @route   POST /api/email-tests/seed-inboxes
+// @access  Public
+router.post('/seed-inboxes', seedTestInboxes);
 
 module.exports = router;
