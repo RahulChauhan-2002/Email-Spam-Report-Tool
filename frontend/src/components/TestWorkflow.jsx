@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import TestHistory from './TestHistory';
+import DatabaseSeeder from './DatabaseSeeder';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://email-spam-report-tool.onrender.com';
 
@@ -395,6 +396,12 @@ export default function TestWorkflow() {
             <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
               Your email will be sent to these 5 test inboxes. We'll check where it lands.
             </p>
+            
+            {/* Show database seeder if no inboxes available */}
+            {testInboxes.length === 0 && !loading && (
+              <DatabaseSeeder />
+            )}
+            
             <div className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
               {testInboxes.map((inbox, idx) => (
                 <div
