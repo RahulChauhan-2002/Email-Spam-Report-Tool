@@ -3,10 +3,23 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-// Load environment variables
-dotenv.config({ path: './backend/.env' });
+// Load environment variables - fix for deployment
+if (process.env.NODE_ENV === 'production') {
+  // In production, use environment variables directly (Render sets them)
+  dotenv.config();
+} else {
+  // In development, try to load from backend/.env
+  dotenv.config({ path: './backend/.env' });
+}
 
 const app = express();
+
+// Debug environment variables
+console.log('🔧 Environment Check:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? '✅ Set' : '❌ Missing');
+console.log('CLIENT_ORIGIN:', process.env.CLIENT_ORIGIN);
+console.log('TESTMAIL_API_KEY:', process.env.TESTMAIL_API_KEY ? '✅ Set' : '❌ Missing');
 
 // Middleware - CORS (explicit origin required when using credentials)
 const ORIGINS = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
