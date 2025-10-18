@@ -14,13 +14,6 @@ if (process.env.NODE_ENV === 'production') {
 
 const app = express();
 
-// Debug environment variables
-console.log('🔧 Environment Check:');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('MONGODB_URI:', process.env.MONGODB_URI ? '✅ Set' : '❌ Missing');
-console.log('CLIENT_ORIGIN:', process.env.CLIENT_ORIGIN);
-console.log('TESTMAIL_API_KEY:', process.env.TESTMAIL_API_KEY ? '✅ Set' : '❌ Missing');
-
 // Middleware - CORS (explicit origin required when using credentials)
 const ORIGINS = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
   .split(',')
@@ -56,6 +49,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/email-del
 // Routes
 app.use('/api/email-tests', require('./routes/emailTests'));
 app.use('/api/tests', require('./routes/tests'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Quick health ping for frontend diagnostics
 app.get('/api/ping', (req, res) => {
