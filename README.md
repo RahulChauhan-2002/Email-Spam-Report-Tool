@@ -4,9 +4,9 @@ A professional web application that tests email deliverability by checking where
 
 ## 🚀 Live Demo
 
-**Live App URL**: [https://your-app-url.com](https://your-app-url.com) *(Replace with your deployed URL)*
+**Live App URL**: [https://your-app-url.com](https://email-spam-report-tool-1-oncd.onrender.com)
 
-**GitHub Repository**: [https://github.com/yourusername/email-spam-report-tool](https://github.com/yourusername/email-spam-report-tool) *(Replace with your repo URL)*
+**GitHub Repository**: [https://github.com/yourusername/email-spam-report-tool](https://github.com/RahulChauhan-2002/Email-Spam-Report-Tool) 
 
 ## 📋 What It Does
 
