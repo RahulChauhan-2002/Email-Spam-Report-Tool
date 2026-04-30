@@ -22,7 +22,7 @@ This tool helps email marketers, developers, and businesses test their email del
 - **Test History**: Track your deliverability performance over time
 - **Automatic Email Sending**: Send test emails automatically (optional Gmail SMTP setup)
 
-## 🆕 Key Features (90%+ Assignment Aligned)
+## 🆕 Key Features
 
 ### ✅ **Automatic Email Sending**
 - Configure Gmail SMTP to send test emails automatically  
